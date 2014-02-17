@@ -1,0 +1,6 @@
+-r requirements.txt
+
+nose
+webtest
+unittest2
+coverage

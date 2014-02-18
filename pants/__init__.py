@@ -18,8 +18,12 @@ def main(global_config, **settings):
     token_manager = TokenManager(secret=settings['token-secret'])
     config.registry.token_manager = token_manager
 
-    def add_db_to_request(event):
+    backend_class = config.maybe_dotted(settings['storage'])
+    config.registry.storage = storage = backend_class(config)
+
+    def attach_services_to_request(event):
         event.request.token_manager = token_manager
-    config.add_subscriber(add_db_to_request, NewRequest)
+        event.request.storage = storage
+    config.add_subscriber(attach_services_to_request, NewRequest)
 
     return config.make_wsgi_app()

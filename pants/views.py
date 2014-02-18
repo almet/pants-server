@@ -33,6 +33,11 @@ def generate_callurl(request):
     Generate a callurl based on user ID.
     """
     userid = authenticated_userid(request)
+
+    # We need to try/except here in case the db fails.
+    request.storage.store_simplepush_url(
+        userid, request.validated['simple-push-url'])
+
     token = request.token_manager.make_token({"userid": userid})
     call_url = '{root}/call/{token}'.format(root=request.application_url,
                                             token=token)

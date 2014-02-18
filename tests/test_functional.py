@@ -14,6 +14,7 @@ class FunctionalTest(unittest.TestCase):
     def setUp(self):
         self.app = webtest.TestApp("config:tests.ini", relative_to=__HERE__)
         self.token_manager = self.app.app.registry.token_manager
+        self.storage = self.app.app.registry.storage
         self.simple_push_url = 'https://token.services.mozilla.org'
 
     # POST /call-url
@@ -62,8 +63,13 @@ class FunctionalTest(unittest.TestCase):
         auth_header = resp.headers.get('WWW-Authenticate')
         self.assertEquals(auth_header, 'Hawk', auth_header)
 
-    def test_token_creation_validates_authn(self):
-        pass
+    @sign_requests(user='n1k0')
+    def test_token_creation_stores_push_url(self):
+        self.app.post_json('/call-url', {
+            'simple-push-url': self.simple_push_url
+        }, status=200)
+        self.assertIn(self.simple_push_url,
+                      self.storage.get_simplepush_urls('n1k0'))
 
     # GET /call/<token>
     def test_invalid_callurl_token_returns_400(self):

@@ -19,7 +19,7 @@ def is_token_valid(request):
         request.errors.add('querystring', 'token', e.message)
 
 
-@callurl.post(validators=[is_authenticated])
+@callurl.post(permission='create')
 def generate_callurl(request):
     """
     Generate a callurl based on user ID.

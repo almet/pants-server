@@ -29,7 +29,7 @@ clean:
 	rm -fr $(OBJECTS) $(DEV_STAMP) $(INSTALL_STAMP)
 
 tests: install-dev
-	$(VENV)/bin/nosetests --with-coverage --cover-package=pants -x -s
+	$(VENV)/bin/nosetests --with-coverage --cover-package=pants -s
 
 runserver: install
 	$(VENV)/bin/pserve development.ini --reload

@@ -12,6 +12,7 @@ class FunctionalTest(unittest.TestCase):
         self.app = webtest.TestApp("config:tests.ini", relative_to=__HERE__)
         self.token_manager = self.app.app.registry.token_manager
 
+    # POST /call-url
     def test_token_creation_generates_a_valid_token(self):
         resp = self.app.post('/call-url', status=200)
 
@@ -26,9 +27,15 @@ class FunctionalTest(unittest.TestCase):
         call_url = resp.json['call-url']
         self.assertTrue(call_url.startswith('http://localhost/call/'), call_url)
 
-    def test_token_creation_validates_authentication(self):
+    def test_token_creation_requires_authn(self):
+        resp = self.app.post('/call-url', status=401)
+        auth_header = resp.headers.get('WWW-Authenticate')
+        self.assertEquals(auth_header, 'Hawk', auth_header)
+
+    def test_token_creation_validates_authn(self):
         pass
 
+    # GET /call/<token>
     def test_invalid_callurl_token_returns_400(self):
         # Let's forge a token with an invalid secret.
         invalid_token = tokenlib.make_token({'userid': 'h4x0r'},
@@ -42,3 +49,4 @@ class FunctionalTest(unittest.TestCase):
         valid_token = self.token_manager.make_token({'userid': 'n1k0'})
         resp = self.app.get('/call/%s' % valid_token, status=200)
         self.assertEquals(resp.headers['Content-Type'], 'text/html; charset=UTF-8')
+

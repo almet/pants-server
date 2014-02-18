@@ -13,3 +13,4 @@ zope.deprecation==4.1.0
 zope.interface==4.1.0
 tokenlib==0.3.1
 pyramid_jinja2==1.10
+pyramid_hawkauth==0.1.0

@@ -4,7 +4,11 @@ from tokenlib import TokenManager
 
 
 def main(global_config, **settings):
+    # We need to disable cornice's exception handling views
+    settings.setdefault("handle_exceptions", False)
+
     config = Configurator(settings=settings)
+    config.include("pyramid_hawkauth")
     config.include("cornice")
     config.include("pyramid_jinja2")
     config.add_jinja2_search_path("pants:templates")

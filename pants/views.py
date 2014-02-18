@@ -1,3 +1,4 @@
+from colander import (MappingSchema, SchemaNode, String, url)
 from pyramid.security import Allow, Authenticated, authenticated_userid
 
 from cornice import Service
@@ -7,8 +8,10 @@ from tokenlib.errors import Error as TokenError
 callurl = Service(name='callurl', path='/call-url')
 call = Service(name='call', path='/call/{token}')
 
+
 def acl(request):
     return [(Allow, Authenticated, 'create-callurl')]
+
 
 def is_token_valid(request):
     token = request.matchdict['token']
@@ -18,7 +21,13 @@ def is_token_valid(request):
     except TokenError as e:
         request.errors.add('querystring', 'token', e.message)
 
-@callurl.post(permission='create-callurl', acl=acl)
+
+class CallUrlSchema(MappingSchema):
+    simple_push_url = SchemaNode(name='simple-push-url', validator=url,
+                                 typ=String(), location="body")
+
+
+@callurl.post(schema=CallUrlSchema, permission='create-callurl', acl=acl)
 def generate_callurl(request):
     """
     Generate a callurl based on user ID.

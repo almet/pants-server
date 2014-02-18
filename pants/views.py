@@ -1,3 +1,5 @@
+from pyramid.security import Allow, Authenticated, authenticated_userid
+
 from cornice import Service
 from tokenlib.errors import Error as TokenError
 
@@ -5,10 +7,8 @@ from tokenlib.errors import Error as TokenError
 callurl = Service(name='callurl', path='/call-url')
 call = Service(name='call', path='/call/{token}')
 
-def is_authenticated(request):
-    """Validates that an user is authenticated and extracts its userid"""
-    request.validated['userid'] = 'n1k0';
-
+def acl(request):
+    return [(Allow, Authenticated, 'create-callurl')]
 
 def is_token_valid(request):
     token = request.matchdict['token']
@@ -18,15 +18,13 @@ def is_token_valid(request):
     except TokenError as e:
         request.errors.add('querystring', 'token', e.message)
 
-
-@callurl.post(permission='create')
+@callurl.post(permission='create-callurl', acl=acl)
 def generate_callurl(request):
     """
     Generate a callurl based on user ID.
     """
-    token = request.token_manager.make_token({
-        "userid": request.validated['userid'],
-    })
+    userid = authenticated_userid(request)
+    token = request.token_manager.make_token({"userid": userid})
     call_url = '{root}/call/{token}'.format(root=request.application_url,
                                             token=token)
     return {'call-url': call_url}

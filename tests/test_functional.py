@@ -4,6 +4,8 @@ import unittest2 as unittest
 import tokenlib
 import webtest
 
+from support import sign_requests
+
 __HERE__ = os.path.dirname(os.path.abspath(__file__))
 
 class FunctionalTest(unittest.TestCase):
@@ -13,6 +15,7 @@ class FunctionalTest(unittest.TestCase):
         self.token_manager = self.app.app.registry.token_manager
 
     # POST /call-url
+    @sign_requests(user='n1k0')
     def test_token_creation_generates_a_valid_token(self):
         resp = self.app.post('/call-url', status=200)
 
@@ -21,6 +24,7 @@ class FunctionalTest(unittest.TestCase):
 
         self.assertEquals(parsed_token['userid'], 'n1k0')
 
+    @sign_requests(user='n1k0')
     def test_token_creation_returns_an_absolute_url(self):
         resp = self.app.post('/call-url', status=200)
         self.assertIn('call-url', resp.json)

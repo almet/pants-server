@@ -1,3 +1,4 @@
+from mock import patch
 import tokenlib
 
 from support import authenticate, BaseWebTest
@@ -96,3 +97,43 @@ class ListIncomingCallsTest(BaseWebTest):
     def test_listing_unexisting_calls_returns_empty_list(self):
         resp = self.app.get('/calls', status=200)
         self.assertEquals(resp.json, {u'calls': []})
+
+
+class AddIncomingCallTest(BaseWebTest):
+
+    # POST /calls/<call_token>
+
+    @patch('requests.get')
+    def test_simplepush_is_triggered(self, mocked_get):
+        self.storage.add_simplepush_url('n1k0', "http://example.com")
+        valid_token = self.token_manager.make_token({'userid': 'n1k0'})
+        self.app.post('/calls/%s' % valid_token, status=200)
+        mocked_get.assert_called_with("http://example.com")
+
+    def test_incoming_call_info_are_stored(self):
+        valid_token = self.token_manager.make_token({'userid': 'n1k0'})
+        self.app.post('/calls/%s' % valid_token, status=200)
+        call_info = self.storage.get_call_info('n1k0')
+        self.assertIn(("callee token", "provider session"), call_info)
+
+    def test_returns_provider_info(self):
+        valid_token = self.token_manager.make_token({'userid': 'n1k0'})
+        resp = self.app.post('/calls/%s' % valid_token, status=200)
+        self.assertEquals(resp.json, {
+            u'provider_token': u'caller token',
+            u'provider_session': u'provider session',
+        })
+
+    def test_accept_valid_call_token(self):
+        valid_token = self.token_manager.make_token({'userid': 'n1k0'})
+        self.app.post('/calls/%s' % valid_token, status=200)
+
+    def test_reject_invalid_call_token(self):
+        # Let's forge a call token with an invalid secret.
+        invalid_token = tokenlib.make_token({'userid': 'h4x0r'},
+                                            secret='I AM MEAN')
+        resp = self.app.get('/calls/%s' % invalid_token, status=400)
+        self.assertEquals(resp.json['status'], 'error')
+        self.assertEquals(resp.json['errors'][0]['description'],
+                          'token has invalid signature')
+

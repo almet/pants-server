@@ -16,3 +16,6 @@ Technical stuff not in bugs
 - test the storage.
 - check if that's possible to do ACLs on "everything"
 - rename calls in calls/url
+- investigate queued distribution of requests sent to providers (later)
+- remove use of double quotes
+- add a "make upgrade" target

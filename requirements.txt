@@ -15,3 +15,4 @@ tokenlib==0.3.1
 pyramid_jinja2==1.10
 pyramid_hawkauth==0.1.0
 colander==1.0b1
+requests==2.2.1

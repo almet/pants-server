@@ -21,7 +21,7 @@ def is_call_token_valid(request):
     call_token = request.matchdict['call_token']
     try:
         decoded = request.token_manager.parse_token(call_token.encode())
-        request.validated['call_token'] = decoded
+        request.validated['userid'] = decoded['userid']
     except TokenError as e:
         request.errors.add('querystring', 'call_token', e.message)
 
@@ -50,7 +50,7 @@ def create_call_link(request):
 
 @call.get(validators=[is_call_token_valid], renderer='templates/call.jinja2')
 def display_app(request):
-    return request.validated['call_token']
+    return request.validated
 
 
 @calls.get(permission='list-calls', acl=acl)
@@ -63,3 +63,15 @@ def list_calls(request):
 
     return {'calls': [{'provider_token': token, 'session': session}
                       for token, session in call_info]}
+
+
+@call.post(validators=[is_call_token_valid])
+def add_incoming_call(request):
+    userid = request.validated['userid']
+    callee_token, caller_token = 'callee token', 'caller token'
+    provider_session = 'provider session'
+    request.storage.add_call_info(userid, callee_token, provider_session)
+    return {
+        'provider_token': caller_token,
+        'provider_session': provider_session,
+    }

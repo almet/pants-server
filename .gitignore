@@ -1,3 +1,4 @@
+*.pyc
 .dev_env_installed.stamp
 .install.stamp
 venv/

@@ -5,8 +5,8 @@ from cornice import Service
 from tokenlib.errors import Error as TokenError
 
 
-callurl = Service(name='callurl', path='/call-url')
-call = Service(name='call', path='/call/{token}')
+callurl = Service(name='callurl', path='/calls')
+call = Service(name='call', path='/calls/{token}')
 
 
 def acl(request):

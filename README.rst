@@ -3,6 +3,11 @@ The pants server
 
 This is the meet server for the pants project.
 
+::
+    GET  /calls/{token}  →  Get the app
+    POST /calls/{token}  →  Add an incoming call + simple push notif
+    POST /calls/         →  Create the call link
+
 
 How to install?
 ---------------

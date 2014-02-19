@@ -27,7 +27,7 @@ def is_call_token_valid(request):
 
 
 class CallUrlSchema(MappingSchema):
-    simple_push_url = SchemaNode(name='simple-push-url', validator=url,
+    simple_push_url = SchemaNode(name='simple_push_url', validator=url,
                                  typ=String(), location="body")
 
 
@@ -40,12 +40,12 @@ def create_call_link(request):
 
     # We need to try/except here in case the db fails.
     request.storage.add_simplepush_url(
-        userid, request.validated['simple-push-url'])
+        userid, request.validated['simple_push_url'])
 
     call_token = request.token_manager.make_token({"userid": userid})
     call_url = '{root}/call/{token}'.format(root=request.application_url,
                                             token=call_token)
-    return {'call-url': call_url}
+    return {'call_url': call_url}
 
 
 @call.get(validators=[is_call_token_valid], renderer='templates/call.jinja2')
@@ -61,6 +61,5 @@ def list_calls(request):
     except DoesNotExist:
         call_info = []
 
-    # XXX rename token to provider-token
-    return {'calls': [{'token': token, 'session': session}
+    return {'calls': [{'provider_token': token, 'session': session}
                       for token, session in call_info]}

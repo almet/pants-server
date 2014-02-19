@@ -35,8 +35,9 @@ class TokenCreationTest(BaseWebTest):
             'simple-push-url': self.simple_push_url
         }, status=200)
 
-        token = resp.json['call-url'].split('/')[-1]
-        parsed_token = self.token_manager.parse_token(token.encode())
+        # extract token from call url
+        call_token = resp.json['call-url'].split('/')[-1]
+        parsed_token = self.token_manager.parse_token(call_token.encode())
 
         self.assertEquals(parsed_token['userid'], 'n1k0')
 
@@ -62,9 +63,9 @@ class TokenCreationTest(BaseWebTest):
 
 class CallUrlTest(BaseWebTest):
 
-    # GET /calls/<token>
+    # GET /calls/<call_token>
     def test_invalid_callurl_token_returns_400(self):
-        # Let's forge a token with an invalid secret.
+        # Let's forge a call token with an invalid secret.
         invalid_token = tokenlib.make_token({'userid': 'h4x0r'},
                                             secret='I AM MEAN')
         resp = self.app.get('/calls/%s' % invalid_token, status=400)
@@ -86,6 +87,7 @@ class ListIncomingCallsTest(BaseWebTest):
     def test_listing_existing_calls_work(self):
         self.storage.add_call_info('n1k0', 'token', 'sessionId')
         resp = self.app.get('/calls', status=200)
+        # XXX rename provider token to provider-token
         self.assertEquals(resp.json, {u'calls': [{
             u'session': u'sessionId',
             u'token': u'token'

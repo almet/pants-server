@@ -8,7 +8,7 @@ from pants.storage import DoesNotExist
 
 
 call_url = Service(name='call-url', path='/call-url')
-call = Service(name='call', path='/calls/{token}')
+call = Service(name='call', path='/calls/{call_token}')
 calls = Service(name='calls', path='/calls')
 
 
@@ -17,13 +17,13 @@ def acl(request):
             (Allow, Authenticated, 'list-calls')]
 
 
-def is_token_valid(request):
-    token = request.matchdict['token']
+def is_call_token_valid(request):
+    call_token = request.matchdict['call_token']
     try:
-        token = request.token_manager.parse_token(token.encode())
-        request.validated['token'] = token
+        decoded = request.token_manager.parse_token(call_token.encode())
+        request.validated['call_token'] = decoded
     except TokenError as e:
-        request.errors.add('querystring', 'token', e.message)
+        request.errors.add('querystring', 'call_token', e.message)
 
 
 class CallUrlSchema(MappingSchema):
@@ -42,15 +42,15 @@ def create_call_link(request):
     request.storage.add_simplepush_url(
         userid, request.validated['simple-push-url'])
 
-    token = request.token_manager.make_token({"userid": userid})
+    call_token = request.token_manager.make_token({"userid": userid})
     call_url = '{root}/call/{token}'.format(root=request.application_url,
-                                            token=token)
+                                            token=call_token)
     return {'call-url': call_url}
 
 
-@call.get(validators=[is_token_valid], renderer='templates/call.jinja2')
+@call.get(validators=[is_call_token_valid], renderer='templates/call.jinja2')
 def display_app(request):
-    return request.validated['token']
+    return request.validated['call_token']
 
 
 @calls.get(permission='list-calls', acl=acl)
@@ -61,5 +61,6 @@ def list_calls(request):
     except DoesNotExist:
         call_info = []
 
+    # XXX rename token to provider-token
     return {'calls': [{'token': token, 'session': session}
                       for token, session in call_info]}

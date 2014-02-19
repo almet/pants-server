@@ -5,12 +5,14 @@ from cornice import Service
 from tokenlib.errors import Error as TokenError
 
 
-callurl = Service(name='callurl', path='/calls')
+call_url = Service(name='call-url', path='/call-url')
 call = Service(name='call', path='/calls/{token}')
+calls = Service(name='calls', path='/calls')
 
 
 def acl(request):
-    return [(Allow, Authenticated, 'create-callurl')]
+    return [(Allow, Authenticated, 'create-callurl'),
+            (Allow, Authenticated, 'list-calls')]
 
 
 def is_token_valid(request):
@@ -27,15 +29,15 @@ class CallUrlSchema(MappingSchema):
                                  typ=String(), location="body")
 
 
-@callurl.post(schema=CallUrlSchema, permission='create-callurl', acl=acl)
-def generate_callurl(request):
+@call_url.post(schema=CallUrlSchema, permission='create-callurl', acl=acl)
+def create_call_link(request):
     """
     Generate a callurl based on user ID.
     """
     userid = authenticated_userid(request)
 
     # We need to try/except here in case the db fails.
-    request.storage.store_simplepush_url(
+    request.storage.add_simplepush_url(
         userid, request.validated['simple-push-url'])
 
     token = request.token_manager.make_token({"userid": userid})
@@ -47,3 +49,12 @@ def generate_callurl(request):
 @call.get(validators=[is_token_valid], renderer='templates/call.jinja2')
 def display_app(request):
     return request.validated['token']
+
+
+@calls.get(permission='list-calls', acl=acl)
+def list_calls(request):
+    userid = authenticated_userid(request)
+    call_info = request.storage.get_call_info(userid)
+
+    return {'calls': [{'token': token, 'session': session}
+                      for token, session in call_info]}

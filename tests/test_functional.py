@@ -5,15 +5,15 @@ from support import sign_requests, BaseWebTest
 
 class TokenCreationTest(BaseWebTest):
 
-    # POST /calls
+    # POST /call-url
     def test_token_creation_requires_authn(self):
-        resp = self.app.post('/calls', status=401)
+        resp = self.app.post('/call-url', status=401)
         auth_header = resp.headers.get('WWW-Authenticate')
         self.assertEquals(auth_header, 'Hawk', auth_header)
 
     @sign_requests(user='n1k0')
     def test_token_creation_needs_simple_push_url(self):
-        resp = self.app.post_json('/calls', status=400)
+        resp = self.app.post_json('/call-url', status=400)
         self.assertEquals(resp.json['status'], 'error')
         error = resp.json['errors'][0]
         self.assertEquals(error['name'], 'simple-push-url')
@@ -21,7 +21,7 @@ class TokenCreationTest(BaseWebTest):
 
     @sign_requests(user='n1k0')
     def test_token_creation_needs_simple_push_url_to_be_valid(self):
-        resp = self.app.post_json('/calls', {
+        resp = self.app.post_json('/call-url', {
             'simple-push-url': 'nohttp'
         }, status=400)
         self.assertEquals(resp.json['status'], 'error')
@@ -31,7 +31,7 @@ class TokenCreationTest(BaseWebTest):
 
     @sign_requests(user='n1k0')
     def test_token_creation_generates_a_valid_token(self):
-        resp = self.app.post_json('/calls', {
+        resp = self.app.post_json('/call-url', {
             'simple-push-url': self.simple_push_url
         }, status=200)
 
@@ -42,7 +42,7 @@ class TokenCreationTest(BaseWebTest):
 
     @sign_requests(user='n1k0')
     def test_token_creation_returns_an_absolute_url(self):
-        resp = self.app.post_json('/calls', {
+        resp = self.app.post_json('/call-url', {
             'simple-push-url': self.simple_push_url
         }, status=200)
 
@@ -53,7 +53,7 @@ class TokenCreationTest(BaseWebTest):
 
     @sign_requests(user='n1k0')
     def test_token_creation_stores_push_url(self):
-        self.app.post_json('/calls', {
+        self.app.post_json('/call-url', {
             'simple-push-url': self.simple_push_url
         }, status=200)
         self.assertIn(self.simple_push_url,
@@ -77,3 +77,16 @@ class CallUrlTest(BaseWebTest):
         resp = self.app.get('/calls/%s' % valid_token, status=200)
         self.assertEquals(resp.headers['Content-Type'],
                           'text/html; charset=UTF-8')
+
+
+class ListIncomingCallsTest(BaseWebTest):
+
+    # GET /calls
+    @sign_requests(user='n1k0')
+    def test_listed_calls_exist(self):
+        self.storage.add_call_info('n1k0', 'token', 'sessionId')
+        resp = self.app.get('/calls', status=200)
+        self.assertEquals(resp.json, {u'calls': [{
+            u'session': u'sessionId',
+            u'token': u'token'
+        }]})

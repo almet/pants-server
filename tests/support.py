@@ -11,7 +11,7 @@ from pyramid.request import Request
 __HERE__ = os.path.dirname(os.path.abspath(__file__))
 
 
-def sign_requests(user='alexis'):
+def authenticate(user='alexis'):
     """Monkey patch the self.app object so that requests are signed with an
        Hawk token.
     """

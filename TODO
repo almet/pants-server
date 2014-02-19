@@ -5,8 +5,8 @@ The meet/pants server needs to:
 [DONE] - 971993: store user ID to push URL mapping(s). NEED TO DO REAL STORAGE IN A MEMCACHE DB.
 [DONE] - 971994: generate temporary session URIs to send to unregistered users.
 [DONE] - 971995: extract and validate information from temporary URI.
+[DONE] - 971999: Server needs to service request from client to list pending incoming calls
 - 974317: Server needs to accept a new incoming call
-- 971999: Server needs to service request from client to list pending incoming calls
 - 971996: interface with partner servers to acquire room and partcipant tokens.
 - 971997: store room and participant tokens in database.
 

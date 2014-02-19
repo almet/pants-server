@@ -1,21 +1,9 @@
-import os
-import unittest2 as unittest
-
 import tokenlib
-import webtest
 
-from support import sign_requests
-
-__HERE__ = os.path.dirname(os.path.abspath(__file__))
+from support import sign_requests, BaseWebTest
 
 
-class FunctionalTest(unittest.TestCase):
-
-    def setUp(self):
-        self.app = webtest.TestApp("config:tests.ini", relative_to=__HERE__)
-        self.token_manager = self.app.app.registry.token_manager
-        self.storage = self.app.app.registry.storage
-        self.simple_push_url = 'https://token.services.mozilla.org'
+class TokenCreationTest(BaseWebTest):
 
     # POST /calls
     def test_token_creation_requires_authn(self):
@@ -70,6 +58,9 @@ class FunctionalTest(unittest.TestCase):
         }, status=200)
         self.assertIn(self.simple_push_url,
                       self.storage.get_simplepush_urls('n1k0'))
+
+
+class CallUrlTest(BaseWebTest):
 
     # GET /calls/<token>
     def test_invalid_callurl_token_returns_400(self):

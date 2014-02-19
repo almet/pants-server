@@ -4,6 +4,8 @@ from pyramid.security import Allow, Authenticated, authenticated_userid
 from cornice import Service
 from tokenlib.errors import Error as TokenError
 
+from pants.storage import DoesNotExist
+
 
 call_url = Service(name='call-url', path='/call-url')
 call = Service(name='call', path='/calls/{token}')
@@ -54,7 +56,10 @@ def display_app(request):
 @calls.get(permission='list-calls', acl=acl)
 def list_calls(request):
     userid = authenticated_userid(request)
-    call_info = request.storage.get_call_info(userid)
+    try:
+        call_info = request.storage.get_call_info(userid)
+    except DoesNotExist:
+        call_info = []
 
     return {'calls': [{'token': token, 'session': session}
                       for token, session in call_info]}

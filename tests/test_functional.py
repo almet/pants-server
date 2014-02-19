@@ -83,10 +83,16 @@ class ListIncomingCallsTest(BaseWebTest):
 
     # GET /calls
     @sign_requests(user='n1k0')
-    def test_listed_calls_exist(self):
+    def test_listing_existing_calls_work(self):
         self.storage.add_call_info('n1k0', 'token', 'sessionId')
         resp = self.app.get('/calls', status=200)
         self.assertEquals(resp.json, {u'calls': [{
             u'session': u'sessionId',
             u'token': u'token'
         }]})
+
+    # GET /calls
+    @sign_requests(user='n1k0')
+    def test_listing_unexisting_calls_returns_empty_list(self):
+        resp = self.app.get('/calls', status=200)
+        self.assertEquals(resp.json, {u'calls': []})
